@@ -47,7 +47,7 @@
                 }
                 embed.addField(cathName, string)
             }
-            document.getElementById("output").innerText = embed.getJSON();
+            document.getElementById("output").innerText = JSON.stringify(embed.getJSON());
             hook.send(embed);
         }
 
