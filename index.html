@@ -1,0 +1,73 @@
+
+<body>
+
+    <div id="webapp">       
+            <input id="webhook-url" type="text" name="webhook-url" placeholder="Webhook URL">
+            <input id="webhook-title" type="text" name="webhook-title" placeholder="Titel">
+            <button onclick="addCath()">Kathegorie hinzufügen</button>
+    </div>
+    <button onclick="sendHook()">Generieren</button>
+    <script src="bundle.js"></script>
+
+        
+
+    <script>
+        var webapp = document.getElementById("webapp");
+        var nextCath = 0;
+        var nextLink = [];
+        function addCath() {
+            webapp.appendChild(createElementFromHTML("<div id=\"cath-"+nextCath+"\"><input type=\"text\" name=\"cath-name-"+nextCath+"\" placeholder=\"Cathegorie Name\"><button onclick=\"addLink(this.parentElement, "+nextCath+")\">Link hinzufügen</button><br></div>"))
+            nextLink[nextCath]=0;
+            nextCath = nextCath+1;
+        }
+        function addLink(node, id) {
+            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-name-"+id+"-"+nextLink[id]+"\" placeholder=\"Link Name\">"))
+            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-url-"+id+"-"+nextLink[id]+"\" placeholder=\"Link URL\">"))
+            node.appendChild(createElementFromHTML("<br>"))
+            nextLink[id] = nextLink[id]+1;
+        }  
+
+        function sendHook() {
+            var webhookurl = document.getElementById("webhook-url").value
+            var title = document.getElementById("webhook-title").value
+            const hook = new Webhook(webhookurl)
+            const embed = new MessageBuilder()
+            embed.setTitle(title)
+            for (let index = 0; index < nextCath; index++) {
+                var cathegorie = document.getElementById("cath-"+index);
+                var cathName = cathegorie.children[0].value;
+                var string = "";
+                for (let ind = 0; ind < (cathegorie.childElementCount-3)/3; ind++) {
+                    console.log(ind*3+1)
+                    var name = cathegorie.children[(ind*3+3)].value;
+                    var url = cathegorie.children[(ind*3+4)].value;
+                    string = string+"["+name+"]("+url+")\n"
+                    console.log(string)
+                }
+                embed.addField(cathName, string)
+            }
+            hook.send(embed);
+        }
+
+        
+        
+        /*const embed = new MessageBuilder()
+            .setTitle('Test')
+            .setAuthor('Thore')
+            .addField('Test', 'test', true)
+            .setColor('#00b0f4')
+            .setThumbnail('https://cdn.discordapp.com/embed/avatars/0.png')
+            .setDescription('Demonstrating test')
+            .setTimestamp();
+    
+        hook.send(embed);*/
+
+        function createElementFromHTML(htmlString) {
+            var div = document.createElement('div');
+            div.innerHTML = htmlString.trim();
+
+            // Change this to div.childNodes to support multiple top-level nodes.
+            return div.firstChild;
+        }
+    </script>
+</body>
