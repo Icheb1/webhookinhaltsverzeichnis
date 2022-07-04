@@ -7,6 +7,7 @@
             <button onclick="addCath()">Kathegorie hinzufügen</button>
     </div>
     <button onclick="sendHook()">Generieren</button>
+    <p id="output"></p>
     <script src="bundle.js"></script>
 
         
@@ -46,6 +47,7 @@
                 }
                 embed.addField(cathName, string)
             }
+            document.getElementById("output").innerText = embed.getJSON();
             hook.send(embed);
         }
 
