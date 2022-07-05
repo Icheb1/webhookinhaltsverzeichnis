@@ -78,15 +78,20 @@
                 const embed = new MessageBuilder()
                 embed.setTitle(title)
                 for (let index = 0; index < nextCat; index++) {
-                    var categorie = document.getElementById("cat-"+index);
-                    var catName = categorie.children[0].value;
-                    var string = "";
-                    for (let ind = 0; ind < (categorie.childElementCount-4)/4; ind++) {
-                        var name = categorie.children[(ind*4+4)].value;
-                        var url = categorie.children[(ind*4+5)].value;
-                        string = string+"["+name+"]("+url+")\n"
-                    }
+                    try {
+                        var categorie = document.getElementById("cat-"+index);
+                        var catName = categorie.children[0].value;
+                        var string = "";
+                        for (let ind = 0; ind < (categorie.childElementCount-4)/4; ind++) {
+                            var name = categorie.children[(ind*4+4)].value;
+                            var url = categorie.children[(ind*4+5)].value;
+                            string = string+"["+name+"]("+url+")\n"
+                        }
                     embed.addField(catName, string)
+                    } catch (error) {
+                        
+                    }
+                    
                 }
                 document.getElementById("output").innerText = JSON.stringify(embed.getJSON());
             
