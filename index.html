@@ -4,51 +4,94 @@
     <div id="webapp">       
             <input id="webhook-url" type="text" name="webhook-url" placeholder="Webhook URL">
             <input id="webhook-title" type="text" name="webhook-title" placeholder="Titel">
-            <button onclick="addCath()">Kathegorie hinzufügen</button>
+            <button onclick="addCat()">Kategorie hinzufügen</button>
+            <br>
     </div>
+    <br>
     <button onclick="sendHook()">Generieren</button>
-    <p id="output"></p>
+    <br><br><p id="output"></p><br><br>
+    <input type="text" id="config" name="config" placeholder="Konfiguration">
+    <button onclick="loadInput(document.getElementById('config').value)">Konfiguration laden</button><p id="errormsg"></p>
     <script src="bundle.js"></script>
 
         
 
     <script>
         var webapp = document.getElementById("webapp");
-        var nextCath = 0;
+        var nextCat = 0;
         var nextLink = [];
-        function addCath() {
-            webapp.appendChild(createElementFromHTML("<div id=\"cath-"+nextCath+"\"><input type=\"text\" name=\"cath-name-"+nextCath+"\" placeholder=\"Cathegorie Name\"><button onclick=\"addLink(this.parentElement, "+nextCath+")\">Link hinzufügen</button><br></div>"))
-            nextLink[nextCath]=0;
-            nextCath = nextCath+1;
+        var errorstateGeneration = 0;
+        var errorstateImport = 0;
+
+        function addCat() {
+            webapp.appendChild(createElementFromHTML("<br>"))
+            webapp.appendChild(createElementFromHTML("<div id=\"cat-"+nextCat+"\"><input type=\"text\" name=\"cat-name-"+nextCat+"\" id=\"cat-name-"+nextCat+"\" placeholder=\"Kategorie Name\"><button onclick=\"addLink(this.parentElement, "+nextCat+")\">Link hinzufügen</button><br></div>"))
+            nextLink[nextCat]=0;
+            nextCat++;
+            return nextCat-1;
         }
         function addLink(node, id) {
-            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-name-"+id+"-"+nextLink[id]+"\" placeholder=\"Link Name\">"))
-            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-url-"+id+"-"+nextLink[id]+"\" placeholder=\"Link URL\">"))
+            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-name-"+id+"-"+nextLink[id]+"\" id=\"link-name-"+id+"-"+nextLink[id]+"\" placeholder=\"Link Name\">"))
+            node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-url-"+id+"-"+nextLink[id]+"\" id=\"link-url-"+id+"-"+nextLink[id]+"\" placeholder=\"Link URL\">"))
             node.appendChild(createElementFromHTML("<br>"))
             nextLink[id] = nextLink[id]+1;
         }  
 
         function sendHook() {
-            var webhookurl = document.getElementById("webhook-url").value
-            var title = document.getElementById("webhook-title").value
-            const hook = new Webhook(webhookurl)
-            const embed = new MessageBuilder()
-            embed.setTitle(title)
-            for (let index = 0; index < nextCath; index++) {
-                var cathegorie = document.getElementById("cath-"+index);
-                var cathName = cathegorie.children[0].value;
-                var string = "";
-                for (let ind = 0; ind < (cathegorie.childElementCount-3)/3; ind++) {
-                    console.log(ind*3+1)
-                    var name = cathegorie.children[(ind*3+3)].value;
-                    var url = cathegorie.children[(ind*3+4)].value;
-                    string = string+"["+name+"]("+url+")\n"
-                    console.log(string)
+            
+                var webhookurl = document.getElementById("webhook-url").value
+                var title = document.getElementById("webhook-title").value
+                const hook = new Webhook(webhookurl)
+                const embed = new MessageBuilder()
+                embed.setTitle(title)
+                for (let index = 0; index < nextCat; index++) {
+                    var categorie = document.getElementById("cat-"+index);
+                    var catName = categorie.children[0].value;
+                    var string = "";
+                    for (let ind = 0; ind < (categorie.childElementCount-3)/3; ind++) {
+                        console.log(ind*3+1)
+                        var name = categorie.children[(ind*3+3)].value;
+                        var url = categorie.children[(ind*3+4)].value;
+                        string = string+"["+name+"]("+url+")\n"
+                        console.log(string)
+                    }
+                    embed.addField(catName, string)
                 }
-                embed.addField(cathName, string)
+                document.getElementById("output").innerText = JSON.stringify(embed.getJSON());
+            
+                hook.send(embed).catch(error => {
+                    errorstateGeneration++;
+                    document.getElementById("output").innerText = "Das hat nicht geklappt ("+errorstateGeneration+"x)"
+                });
             }
-            document.getElementById("output").innerText = JSON.stringify(embed.getJSON());
-            hook.send(embed);
+
+        function loadInput(input) {
+            try {
+                var inputJson = JSON.parse(input.replaceAll("\\n", "BREAKPOINT").replaceAll("\n", "BREAKPOINT"));
+                console.log(inputJson);
+                document.getElementById("webhook-title").value = inputJson.embeds[0].title
+                inputJson.embeds[0].fields.forEach(element => {
+                    var cat = addCat();
+                    document.getElementById("cat-name-"+cat).value = element.name;
+                    var value = element.value;
+                    value = value.replaceAll("[", "").replaceAll(")", "").split("BREAKPOINT");
+                    value.pop();
+                    console.log(value);
+                    var i = 0
+                    value.forEach(element => {
+                        addLink(document.getElementById("cat-"+cat), cat)
+                        var split = element.split("](");
+                        console.log("link-name-"+cat+"-"+i);
+                        document.getElementById("link-name-"+cat+"-"+i).value = split[0];
+                        document.getElementById("link-url-"+cat+"-"+i).value = split[1];
+                        i++;
+                    });
+                });
+                document.getElementById("config").value = "";
+            } catch (error) {
+                errorstateImport++;
+                document.getElementById("errormsg").innerText = "Konnte nicht verarbeitet werden ("+errorstateImport+"x)"
+            }
         }
 
         
