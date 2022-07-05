@@ -33,7 +33,8 @@
         function addLink(node, id) {
             node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-name-"+id+"-"+nextLink[id]+"\" id=\"link-name-"+id+"-"+nextLink[id]+"\" placeholder=\"Link Name\">"))
             node.appendChild(createElementFromHTML("<input type=\"text\" name=\"link-url-"+id+"-"+nextLink[id]+"\" id=\"link-url-"+id+"-"+nextLink[id]+"\" placeholder=\"Link URL\">"))
-            node.appendChild(createElementFromHTML("<br>"))
+            node.appendChild(createElementFromHTML("<button onclick=\"removeLink("+id+","+nextLink[id]+", false)\" id=\"link-remove-"+id+"-"+nextLink[id]+"\">Link entfernen</button>"))
+            node.appendChild(createElementFromHTML("<br id=\"link-br-"+id+"-"+nextLink[id]+"\">"))
             nextLink[id] = nextLink[id]+1;
         }  
         function removeCat(id, confirmed) {
@@ -50,6 +51,24 @@
                 }, 1000)
             }
         }
+        function removeLink(cat, id, confirmed) {
+            if (confirmed) {
+                document.getElementById("link-name-"+cat+"-"+id).remove();
+                document.getElementById("link-url-"+cat+"-"+id).remove();
+                document.getElementById("link-remove-"+cat+"-"+id).remove();
+                document.getElementById("link-br-"+cat+"-"+id).remove();
+
+            } else {
+                var button = document.getElementById("link-remove-"+cat+"-"+id);
+                button.setAttribute( "onClick", "removeLink("+cat+","+id+", true);");
+                button.innerText = "Bestätigen";
+                setTimeout(function() {
+                    button.setAttribute( "onClick", "removeLink("+cat+","+id+", false);");
+                    button.innerText = "Link entfernen";
+                }, 1000)
+            }
+        }
+
 
         function sendHook() {
             
@@ -62,9 +81,9 @@
                     var categorie = document.getElementById("cat-"+index);
                     var catName = categorie.children[0].value;
                     var string = "";
-                    for (let ind = 0; ind < (categorie.childElementCount-4)/3; ind++) {
-                        var name = categorie.children[(ind*3+4)].value;
-                        var url = categorie.children[(ind*3+5)].value;
+                    for (let ind = 0; ind < (categorie.childElementCount-4)/4; ind++) {
+                        var name = categorie.children[(ind*4+4)].value;
+                        var url = categorie.children[(ind*4+5)].value;
                         string = string+"["+name+"]("+url+")\n"
                     }
                     embed.addField(catName, string)
