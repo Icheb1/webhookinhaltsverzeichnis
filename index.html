@@ -24,8 +24,8 @@
         var errorstateImport = 0;
 
         function addCat() {
-            webapp.appendChild(createElementFromHTML("<br>"))
-            webapp.appendChild(createElementFromHTML("<div id=\"cat-"+nextCat+"\"><input type=\"text\" name=\"cat-name-"+nextCat+"\" id=\"cat-name-"+nextCat+"\" placeholder=\"Kategorie Name\"><button onclick=\"addLink(this.parentElement, "+nextCat+")\">Link hinzufügen</button><br></div>"))
+            webapp.appendChild(createElementFromHTML("<br id=\"brcat-"+nextCat+"\">"))
+            webapp.appendChild(createElementFromHTML("<div id=\"cat-"+nextCat+"\"><input type=\"text\" name=\"cat-name-"+nextCat+"\" id=\"cat-name-"+nextCat+"\" placeholder=\"Kategorie Name\"><button onclick=\"addLink(this.parentElement, "+nextCat+")\">Link hinzufügen</button><button onclick=\"removeCat("+nextCat+", false)\" id=\"removeCat-"+nextCat+"\">Kategorie entfernen</button><br></div>"))
             nextLink[nextCat]=0;
             nextCat++;
             return nextCat-1;
@@ -36,6 +36,20 @@
             node.appendChild(createElementFromHTML("<br>"))
             nextLink[id] = nextLink[id]+1;
         }  
+        function removeCat(id, confirmed) {
+            if (confirmed) {
+                document.getElementById("brcat-"+id).remove();
+                document.getElementById("cat-"+id).remove();
+            } else {
+                var button = document.getElementById("removeCat-"+id);
+                button.setAttribute( "onClick", "removeCat("+id+", true);");
+                button.innerText = "Bestätigen";
+                setTimeout(function() {
+                    button.setAttribute( "onClick", "removeCat("+id+", false);");
+                    button.innerText = "Kategorie entfernen";
+                }, 1000)
+            }
+        }
 
         function sendHook() {
             
@@ -48,12 +62,10 @@
                     var categorie = document.getElementById("cat-"+index);
                     var catName = categorie.children[0].value;
                     var string = "";
-                    for (let ind = 0; ind < (categorie.childElementCount-3)/3; ind++) {
-                        console.log(ind*3+1)
-                        var name = categorie.children[(ind*3+3)].value;
-                        var url = categorie.children[(ind*3+4)].value;
+                    for (let ind = 0; ind < (categorie.childElementCount-4)/3; ind++) {
+                        var name = categorie.children[(ind*3+4)].value;
+                        var url = categorie.children[(ind*3+5)].value;
                         string = string+"["+name+"]("+url+")\n"
-                        console.log(string)
                     }
                     embed.addField(catName, string)
                 }
@@ -68,7 +80,6 @@
         function loadInput(input) {
             try {
                 var inputJson = JSON.parse(input.replaceAll("\\n", "BREAKPOINT").replaceAll("\n", "BREAKPOINT"));
-                console.log(inputJson);
                 document.getElementById("webhook-title").value = inputJson.embeds[0].title
                 inputJson.embeds[0].fields.forEach(element => {
                     var cat = addCat();
@@ -76,12 +87,10 @@
                     var value = element.value;
                     value = value.replaceAll("[", "").replaceAll(")", "").split("BREAKPOINT");
                     value.pop();
-                    console.log(value);
                     var i = 0
                     value.forEach(element => {
                         addLink(document.getElementById("cat-"+cat), cat)
                         var split = element.split("](");
-                        console.log("link-name-"+cat+"-"+i);
                         document.getElementById("link-name-"+cat+"-"+i).value = split[0];
                         document.getElementById("link-url-"+cat+"-"+i).value = split[1];
                         i++;
